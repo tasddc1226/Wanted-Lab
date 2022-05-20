@@ -8,6 +8,7 @@ django = "*"
 djangorestframework = "*"
 pymysql = "*"
 mysqlclient = "*"
+django-filter = "*"
 
 [dev-packages]
 
