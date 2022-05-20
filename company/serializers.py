@@ -4,7 +4,7 @@ from .models import Company
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
-        fields = (
+        fields = [
             'id',
             'company_ko',
             'company_en',
@@ -12,4 +12,4 @@ class CompanySerializer(serializers.ModelSerializer):
             'tag_ko',
             'tag_en',
             'tag_ja'
-        )
+        ]
