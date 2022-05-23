@@ -7,21 +7,58 @@ from company.models import *
 
 CSV_PATH_POS_RESULT_DATA = './wanted_temp_data.csv'
 
+# step 1 : language code
+code_list = ["ko", "en", "ja"]
+for code in code_list:
+    Language.objects.create(
+        code = code
+    )
+
+# step 2 : insert unique companies ID
 with open(CSV_PATH_POS_RESULT_DATA) as in_file:
     data_reader = csv.reader(in_file)
     next(data_reader, None)
     for row in data_reader:
+        Company.objects.create()
+
+
+# step 3 : insert company name & language code
+with open(CSV_PATH_POS_RESULT_DATA) as in_file:
+    data_reader = csv.reader(in_file)
+    next(data_reader, None)
+    for i, row in enumerate(data_reader):
         company_ko = row[0] 
+        CompanyName.objects.create(
+            name = company_ko,
+            code_id = 1,
+            company_id = i+1
+        )
+
+with open(CSV_PATH_POS_RESULT_DATA) as in_file:
+    data_reader = csv.reader(in_file)
+    next(data_reader, None)
+    for i, row in enumerate(data_reader):
         company_en = row[1] 
+        CompanyName.objects.create(
+            name = company_en,
+            code_id = 2,
+            company_id = i+1
+        )
+
+with open(CSV_PATH_POS_RESULT_DATA) as in_file:
+    data_reader = csv.reader(in_file)
+    next(data_reader, None)
+    for i, row in enumerate(data_reader):
+        # company_ko = row[0] 
+        # company_en = row[1] 
         company_ja = row[2] 
-        tag_ko = row[3] 
-        tag_en = row[4] 
-        tag_ja = row[5] 
-        Company.objects.create(
-            company_ko = company_ko,
-            company_en = company_en,
-            company_ja = company_ja,
-            tag_ko = tag_ko,
-            tag_en = tag_en,
-            tag_ja = tag_ja
+        # tag_ko = row[3]
+        # tag_en = row[4]
+        # tag_ja = row[5]
+        CompanyName.objects.create(
+            name = company_ja,
+            # company_en = company_en,
+            # company_ja = company_ja,
+            code_id = 3,
+            company_id = i+1
         )
