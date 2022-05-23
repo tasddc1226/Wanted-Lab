@@ -1,9 +1,11 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework import filters
 from rest_framework.generics import (
     ListCreateAPIView,
-    RetrieveUpdateDestroyAPIView
+    RetrieveUpdateDestroyAPIView,
+    ListAPIView
 )
 from .serializers import CompanySerializer
 from .models import Company
@@ -12,25 +14,27 @@ class CompanyListCreateView(ListCreateAPIView):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
 
-    search_fields = ['company_ko']
-    filter_backends = [filters.SearchFilter]
+class CompanySearchView(ListAPIView):
+    # resp = api.get("/search?query=링크", headers=[("x-wanted-language", "ko")])
+    def get(self, request):
+        try:
+            query = request.GET.get('query', '')
+            language = request.headers['x-wanted-language']
+            searched_companies = []
 
-    def filter_queryset(self, queryset):
-        """
-        Given a queryset, filter it with whichever filter backend is in use.
+            company_ko = Company.objects.filter(company_ko__icontains=query).exists()
+            
+            if language == 'ko' and company_ko:
+                companies = Company.objects.filter(company_ko__icontains=query)
+                for company in companies:
+                    searched_companies.append({
+                        'company_name' : company.company_ko
+                    })
 
-        You are unlikely to want to override this method, although you may need
-        to call it either from a list view, or from a custom `get_object`
-        method if you want to apply the configured filtering backend to the
-        default queryset.
-        """
-        print("this is override func!")
-        for backend in list(self.filter_backends):
-            queryset = backend().filter_queryset(self.request, queryset, self)
-        if not queryset:
-            raise ObjectDoesNotExist
-        return queryset
 
+            return JsonResponse({'searched_companies': searched_companies}, status=200)
+        except Exception as error:
+            return JsonResponse({'error': error}, status=400)
 
 class CompanyDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Company.objects.all()
