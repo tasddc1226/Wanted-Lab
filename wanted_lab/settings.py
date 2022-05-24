@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 
 # DRF Pagination 전역 설정
 REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'company.utils.custom_exception_handler',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 5

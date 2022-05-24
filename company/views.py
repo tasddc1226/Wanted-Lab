@@ -1,4 +1,4 @@
-from django.core.exceptions import ObjectDoesNotExist
+from rest_framework import exceptions
 from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework import filters
@@ -21,17 +21,18 @@ class CompanySearchView(ListAPIView):
         try:
             queryset = CompanyName.objects.all()
 
+            # check search query string
             query = request.GET.get('query', '')
-            language = request.headers['x-wanted-language']
-            print(query, language)
-            searched_companies = []
+            if len(query) == 0:
+                raise ValueError
 
             # check language code is available
+            language = request.headers['x-wanted-language']
             code = Language.objects.filter(code=language).values()[0]
-            if not code:
-                # TODO: 존재하지 않는 language 예외 처리
-                pass
+
+            searched_companies = []
             
+            # search company name using input query
             company = CompanyName.objects.filter(name__icontains=query)
             
             q = Q()
@@ -39,14 +40,19 @@ class CompanySearchView(ListAPIView):
                 q |= Q(company_id=obj.company_id)
             company_queryset = queryset.filter(q)
             
+            # filter by language code_id
             results = company_queryset.filter(code=code['id'])
             for company in results:
                 if not (company.name == ""):
                     searched_companies.append({"company_name": company.name})
 
             return JsonResponse({'searched_companies': searched_companies}, status=200)
+        except ValueError:
+            raise exceptions.ParseError("Empty Query")
+        except IndexError:
+            raise exceptions.ParseError("Unsupported Language")
         except Exception as error:
-            return JsonResponse({'error': error}, status=400)
+            return exceptions.ParseError(error)
             
 
 class CompanyDetailView(RetrieveUpdateDestroyAPIView):
