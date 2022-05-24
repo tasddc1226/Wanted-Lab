@@ -7,12 +7,31 @@ from rest_framework.generics import (
     ListAPIView
 )
 
-from .serializers import CompanyRetrieveSerializer, CompanySerializer
+from .serializers import (
+    CompanyRetrieveSerializer,
+    CompanySerializer,
+    CompanyCreateSerializer
+)
 from .models import *
+import json
 
 class CompanyListCreateView(ListCreateAPIView):
     queryset = CompanyName.objects.all()
-    serializer_class = CompanySerializer
+    serializer_class = CompanyCreateSerializer
+
+    def post(self, request):
+        body = json.loads(request.body.decode('utf-8'))
+        company = Company.objects.create()
+
+        for code, value in body.items():
+            print(code, value)
+            value['company'] = company
+            value['code'], _ = Language.objects.get_or_create(code=code)
+            CompanyName.objects.create(**value)
+        
+        # TODO: 생성 후 요청된 헤더 언어값에 따라 리턴하기
+        return Response(status=status.HTTP_201_CREATED)
+
 
 class CompanySearchView(ListAPIView):
     """
@@ -57,6 +76,7 @@ class CompanyRUDView(RetrieveUpdateDestroyAPIView):
     lookup_field = 'name'
 
     def get_object(self):
+        # TODO: 없는 회사에 대한 404 예외처리
         queryset = self.filter_queryset(self.get_queryset())
         name = self.kwargs[self.lookup_field]
         language = self.request.headers['x-wanted-language']
