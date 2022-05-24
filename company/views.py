@@ -1,60 +1,75 @@
 from rest_framework import exceptions
-from django.http import JsonResponse
-from django.shortcuts import render
-from rest_framework import filters
+from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
     ListAPIView
 )
-from .serializers import CompanySerializer
+
+from .serializers import CompanyRetrieveSerializer, CompanySerializer
 from .models import *
-from django.db.models import Q
 
 class CompanyListCreateView(ListCreateAPIView):
     queryset = CompanyName.objects.all()
     serializer_class = CompanySerializer
 
 class CompanySearchView(ListAPIView):
-    # resp = api.get("/search?query=링크", headers=[("x-wanted-language", "ko")])
-    def get(self, request):
-        try:
-            queryset = CompanyName.objects.all()
-
-            # check search query string
-            query = request.GET.get('query', '')
-            if len(query) == 0:
-                raise ValueError
-
-            # check language code is available
-            language = request.headers['x-wanted-language']
-            code = Language.objects.filter(code=language).values()[0]
-
-            searched_companies = []
-            
-            # search company name using input query
-            company = CompanyName.objects.filter(name__icontains=query)
-            
-            q = Q()
-            for obj in company:
-                q |= Q(company_id=obj.company_id)
-            company_queryset = queryset.filter(q)
-            
-            # filter by language code_id
-            results = company_queryset.filter(code=code['id'])
-            for company in results:
-                if not (company.name == ""):
-                    searched_companies.append({"company_name": company.name})
-
-            return JsonResponse({'searched_companies': searched_companies}, status=200)
-        except ValueError:
-            raise exceptions.ParseError("Empty Query")
-        except IndexError:
-            raise exceptions.ParseError("Unsupported Language")
-        except Exception as error:
-            return exceptions.ParseError(error)
-            
-
-class CompanyDetailView(RetrieveUpdateDestroyAPIView):
-    queryset = Company.objects.all()
+    """
+    [회사명 자동완성]
+        - 회사명의 일부만 들어가도 검색 가능
+        - header의 x-wanted-language 언어값에 따라 해당 언어로 출력
+    
+    endpoint url : api/v1/companies/search/
+    method : GET
+    input query : 링크
+    header : ko(x-wanted-language)
+    """
+    queryset = CompanyName.objects.all()
     serializer_class = CompanySerializer
+    
+    def get(self, request):
+        query = request.GET.get('query', '')
+        language = request.headers['x-wanted-language']
+        code = Language.objects.filter(code=language).values()[0]
+        
+        # search company name using input query
+        objs = CompanyName.objects.filter(name__icontains=query)
+        
+        # filter by language code_id
+        objs = objs.filter(code=code['id'])
+        serializer = CompanySerializer(objs, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CompanyRUDView(RetrieveUpdateDestroyAPIView):
+    """
+    [회사 이름으로 회사 검색]
+        - header의 x-wanted-language 언어값에 따라 해당 언어로 출력
+
+    endpoint url : api/v1/companies/<str:name>/
+    method : GET
+    header : ko(x-wanted-language)
+    """
+    queryset = CompanyName.objects.all()
+    serializer_class = CompanyRetrieveSerializer
+    lookup_field = 'name'
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        name = self.kwargs[self.lookup_field]
+        language = self.request.headers['x-wanted-language']
+        code = Language.objects.filter(code=language).values()[0]
+
+        tmp = queryset.filter(name=name).first()
+        obj = queryset.filter(company_id=tmp.company_id, code=code['id']).first()
+        return obj
+
+    def retrieve(self, request, *args, **kwargs):
+        obj = self.get_object()
+        serializer = self.get_serializer(obj)
+
+        serializer_data = serializer.data
+        serializer_data['tags'] = serializer_data['tags'].split('|')
+        return Response(serializer_data, status=status.HTTP_200_OK)
