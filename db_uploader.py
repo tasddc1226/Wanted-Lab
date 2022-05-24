@@ -22,43 +22,42 @@ with open(CSV_PATH_POS_RESULT_DATA) as in_file:
         Company.objects.create()
 
 
-# step 3 : insert company name & language code
+# step 3 : insert company name & language code & tags
 with open(CSV_PATH_POS_RESULT_DATA) as in_file:
     data_reader = csv.reader(in_file)
     next(data_reader, None)
     for i, row in enumerate(data_reader):
-        company_ko = row[0] 
+        company_ko = row[0]
+        tag_ko = row[3]
         CompanyName.objects.create(
             name = company_ko,
             code_id = 1,
-            company_id = i+1
+            company_id = i+1,
+            tags = tag_ko
         )
 
 with open(CSV_PATH_POS_RESULT_DATA) as in_file:
     data_reader = csv.reader(in_file)
     next(data_reader, None)
     for i, row in enumerate(data_reader):
-        company_en = row[1] 
+        company_en = row[1]
+        tag_en = row[4]
         CompanyName.objects.create(
             name = company_en,
             code_id = 2,
-            company_id = i+1
+            company_id = i+1,
+            tags = tag_en
         )
 
 with open(CSV_PATH_POS_RESULT_DATA) as in_file:
     data_reader = csv.reader(in_file)
     next(data_reader, None)
     for i, row in enumerate(data_reader):
-        # company_ko = row[0] 
-        # company_en = row[1] 
-        company_ja = row[2] 
-        # tag_ko = row[3]
-        # tag_en = row[4]
-        # tag_ja = row[5]
+        company_ja = row[2]
+        tag_ja = row[5]
         CompanyName.objects.create(
             name = company_ja,
-            # company_en = company_en,
-            # company_ja = company_ja,
             code_id = 3,
-            company_id = i+1
+            company_id = i+1,
+            tags = tag_ja
         )
