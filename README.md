@@ -215,15 +215,19 @@
 
 - 모든 회사 정보 목록 조회(Pagination)
     - `GET` `api/v1/companies/`
+    
     - `Request Body`
+    
         ```json
         None
         ```
     - `Request Headers`
+
         ```json
         None
         ```
     - `Server Response`
+
         ```json
         {
             "count": 351,
