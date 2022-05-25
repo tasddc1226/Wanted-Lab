@@ -10,6 +10,8 @@ pymysql = "*"
 mysqlclient = "*"
 django-filter = "*"
 pytest = "*"
+pytest-django = "*"
+requests = "*"
 
 [dev-packages]
 
