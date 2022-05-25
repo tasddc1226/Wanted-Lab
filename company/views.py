@@ -1,4 +1,6 @@
-from rest_framework import exceptions
+from django.http import Http404
+from .utils import custom_exception_handler
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.generics import (
@@ -102,11 +104,15 @@ class CompanyRUDView(RetrieveUpdateDestroyAPIView):
         code = Language.objects.filter(code=language).values()[0]
 
         tmp = queryset.filter(name=name).first()
+        if tmp is None:
+            return None
         obj = queryset.filter(company_id=tmp.company_id, code=code['id']).first()
         return obj
 
     def retrieve(self, request, *args, **kwargs):
         obj = self.get_object()
+        if obj is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
         serializer = self.get_serializer(obj)
 
         serializer_data = serializer.data
