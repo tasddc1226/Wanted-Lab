@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 from my_settings import SECRET_KEY, DEBUG, DATABASES
-
+import os
 import pymysql
 pymysql.install_as_MySQLdb()
 
@@ -29,8 +29,8 @@ SECRET_KEY = SECRET_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = DEBUG
 
-ALLOWED_HOSTS = ['*']
-
+ALLOWED_HOSTS = ['*', "website"]
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # Application definition
 
