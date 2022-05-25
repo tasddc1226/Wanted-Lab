@@ -16,8 +16,25 @@ from .models import *
 import json
 
 class CompanyListCreateView(ListCreateAPIView):
+    """
+    [새로운 회사 등록]
+        - header의 x-wanted-language 언어값에 따라 등록된 회사를 해당 언어로 출력
+
+    endpoint url : api/v1/companies/
+    method : POST
+    header : ko(x-wanted-language)
+    """
     queryset = CompanyName.objects.all()
-    serializer_class = CompanyCreateSerializer
+    serializer_class = CompanyRetrieveSerializer
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        language = self.request.headers['x-wanted-language']
+        code = Language.objects.filter(code=language).values()[0]
+
+        tmp = queryset.order_by('-id').first()
+        obj = queryset.filter(company_id=tmp.company_id, code=code['id']).first()
+        return obj
 
     def post(self, request):
         body = json.loads(request.body.decode('utf-8'))
@@ -29,8 +46,10 @@ class CompanyListCreateView(ListCreateAPIView):
             value['code'], _ = Language.objects.get_or_create(code=code)
             CompanyName.objects.create(**value)
         
-        # TODO: 생성 후 요청된 헤더 언어값에 따라 리턴하기
-        return Response(status=status.HTTP_201_CREATED)
+        obj = self.get_object()
+        serializer = self.get_serializer(obj)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class CompanySearchView(ListAPIView):
@@ -58,7 +77,7 @@ class CompanySearchView(ListAPIView):
         # filter by language code_id
         objs = objs.filter(code=code['id'])
         serializer = CompanySerializer(objs, many=True)
-
+        
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
