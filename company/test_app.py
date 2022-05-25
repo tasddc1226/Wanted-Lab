@@ -42,10 +42,20 @@ class JobCreatListView(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.json(), expecting_result)
 
+    def test_not_found_company(self):
+        """
+        3. 없는 회사 이름으로 회사 검색
+        """
+        url = 'http://localhost:8000/api/v1/companies/없는회사/'
+        headers = {"x-wanted-language": "ko"}
+        r = requests.get(url, headers=headers)
+
+        self.assertEqual(r.status_code, 404)
+
 
     def test_new_company(self):
         """
-        3.  새로운 회사 추가
+        4.  새로운 회사 추가
         새로운 언어(tw)도 같이 추가 될 수 있습니다.
         저장 완료후 header의 x-wanted-language 언어값에 따라 해당 언어로 출력되어야 합니다.
         """
