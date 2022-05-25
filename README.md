@@ -69,7 +69,7 @@
 
 ## Tech Stack
 
-<img src="https://img.shields.io/badge/python-3.9.12-green">  <img src="https://img.shields.io/badge/Django-4.0.4-red">   <img src="https://img.shields.io/badge/djangorestframework-3.13.1-blu">   <img src="https://img.shields.io/badge/PyMySql-1.0.2-blue">
+<img src="https://img.shields.io/badge/python-3.9.12-green">  <img src="https://img.shields.io/badge/Django-4.0.4-red">   <img src="https://img.shields.io/badge/djangorestframework-3.13.1-blu">   <img src="https://img.shields.io/badge/PyMySql-1.0.2-blue"> <img src="https://img.shields.io/badge/pytest-7.1.2-black"> <img src="https://img.shields.io/badge/pytest_django-4.5.2-yellow">
 
 <br>
 
@@ -80,6 +80,7 @@
 
 ### DB Schema
 - `company table`
+
     ```
     mysql> desc company;
     +-------+--------+------+-----+---------+----------------+
@@ -93,6 +94,7 @@
 <br>
 
 - `language table`
+
     ```
     mysql> desc language;
     +--------+------------+------+-----+---------+----------------+
@@ -111,6 +113,7 @@
 <br>
 
 - `company_name table`
+
     ```
     mysql> desc company_name;
     +------------+--------------+------+-----+---------+----------------+
@@ -134,11 +137,12 @@
 ## API Document
 - 회사명 자동 완성 검색
     - `GET` `api/v1/companies/search/?query=링크`
+
     - `Request Body`
         ```json
         None
         ```
-    - `Requert Header`
+    - `Request Header`
         ```json
         { "x-wanted-language" : "ko" }
         ```
@@ -152,11 +156,12 @@
 
 - 회사 이름으로 회사 검색
     - `GET` `api/v1/companies/<str:name>/`
+
     - `Request Body`
         ```json
         None
         ```
-    - `Requert Header`
+    - `Request Header`
         ```json
         { "x-wanted-language" : "ko" }
         ```
@@ -175,6 +180,77 @@
 - 새로운 회사 등록
     - `POST` `api/v1/companies/`
 
-- 모든 회사 정보 조회
+    - `Request Body`
+        ```json
+        {
+            "ko":{
+                "name":"라인 프레쉬",
+                "tags":["태그_1", "태그_8", "태그_15"]
+            },
+            "tw":{
+                "name":"LINE FRESH",
+                "tags":["tag_1", "tag_8", "tag_15"]
+            },
+            "en":{
+                "name":"LINE FRESH",
+                "tags":["tag_1", "tag_8", "tag_15"]
+            }
+        }
+        ```
+    - `Request Headers`
+        ```json
+        { "x-wanted-language" : "tw" }
+        ```
+    - `Server Response`
+        ```json
+        {
+            "company_name": "LINE FRESH",
+            "tags": [
+                "tag_1",
+                "tag_8",
+                "tag_15"
+            ]
+        }
+        ```
+
+- 모든 회사 정보 목록 조회(Pagination)
     - `GET` `api/v1/companies/`
+    - `Request Body`
+        ```json
+        None
+        ```
+    - `Request Headers`
+        ```json
+        None
+        ```
+    - `Server Response`
+        ```json
+        {
+            "count": 351,
+            "next": "http://127.0.0.1:8000/api/v1/companies/?page=2",
+            "previous": null,
+            "results": [
+                {
+                    "company_name": "원티드랩",
+                    "tags": "태그_4|태그_20|태그_16"
+                },
+                {
+                    "company_name": "",
+                    "tags": "태그_24|태그_27|태그_4"
+                },
+                {
+                    "company_name": "이상한마케팅",
+                    "tags": "태그_25|태그_6|태그_14|태그_9"
+                },
+                {
+                    "company_name": "인포뱅크",
+                    "tags": "태그_25"
+                },
+                {
+                    "company_name": "아이씨그룹",
+                    "tags": "태그_1|태그_23|태그_28|태그_14"
+                }
+            ]
+        }
+        ```
 
