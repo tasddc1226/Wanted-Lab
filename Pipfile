@@ -12,6 +12,7 @@ django-filter = "*"
 pytest = "*"
 pytest-django = "*"
 requests = "*"
+gunicorn = "*"
 
 [dev-packages]
 

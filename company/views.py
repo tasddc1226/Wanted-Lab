@@ -1,6 +1,3 @@
-from django.http import Http404
-from .utils import custom_exception_handler
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.generics import (
@@ -32,10 +29,9 @@ class CompanyListCreateView(ListCreateAPIView):
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
         language = self.request.headers['x-wanted-language']
-        code = Language.objects.filter(code=language).values()[0]
 
         tmp = queryset.order_by('-id').first()
-        obj = queryset.filter(company_id=tmp.company_id, code=code['id']).first()
+        obj = queryset.filter(company_id=tmp.company_id, code__code=language).first()
         return obj
 
     def post(self, request):
@@ -71,14 +67,13 @@ class CompanySearchView(ListAPIView):
     def get(self, request):
         query = request.GET.get('query', '')
         language = request.headers['x-wanted-language']
-        code = Language.objects.filter(code=language).values()[0]
         
         # search company name using input query
         objs = CompanyName.objects.filter(name__icontains=query)
         
-        # filter by language code_id
-        objs = objs.filter(code=code['id'])
-        serializer = CompanySerializer(objs, many=True)
+        # filter by language
+        objs = objs.filter(code__code=language)
+        serializer = self.get_serializer(objs, many=True)
         
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -97,16 +92,14 @@ class CompanyRUDView(RetrieveUpdateDestroyAPIView):
     lookup_field = 'name'
 
     def get_object(self):
-        # TODO: 없는 회사에 대한 404 예외처리
         queryset = self.filter_queryset(self.get_queryset())
         name = self.kwargs[self.lookup_field]
         language = self.request.headers['x-wanted-language']
-        code = Language.objects.filter(code=language).values()[0]
 
         tmp = queryset.filter(name=name).first()
         if tmp is None:
             return None
-        obj = queryset.filter(company_id=tmp.company_id, code=code['id']).first()
+        obj = queryset.filter(company_id=tmp.company_id, code__code=language).first()
         return obj
 
     def retrieve(self, request, *args, **kwargs):
