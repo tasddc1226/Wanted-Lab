@@ -8,6 +8,7 @@ class Company(models.Model):
 class Language(models.Model):
     code = models.CharField(max_length=2, unique=True)
     in_use = models.BooleanField(default=True)
+    is_test = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'language'
