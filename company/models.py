@@ -9,6 +9,7 @@ class Language(models.Model):
     code = models.CharField(max_length=2, unique=True)
     in_use = models.BooleanField(default=True)
     is_test = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         db_table = 'language'
