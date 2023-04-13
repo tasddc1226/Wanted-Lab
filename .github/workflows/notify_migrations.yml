@@ -1,0 +1,42 @@
+name: Notify Migrations
+
+on:
+  push:
+    branches:
+      - production
+    paths:
+      - '**/migrations/*.py'
+
+jobs:
+  notify_slack:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Check for new migrations
+      run: |
+        NEW_MIGRATIONS=$(git diff --name-only HEAD~1 HEAD | grep 'migrations')
+        if [ -n "$NEW_MIGRATIONS" ]; then
+          echo "NEW_MIGRATIONS=$NEW_MIGRATIONS" >> $GITHUB_ENV
+        fi
+
+    - name: Send Slack notification
+      if: env.NEW_MIGRATIONS != ''
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        text: "New migrations have been merged: ${{ env.NEW_MIGRATIONS }}"
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
