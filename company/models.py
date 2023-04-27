@@ -10,6 +10,9 @@ class Language(models.Model):
     in_use = models.BooleanField(default=True)
     is_test = models.BooleanField(default=False)
     test_textfield = models.TextField(null=True, blank=True)
+    this_is_test = models.BooleanField(default=False)
+    hello_world = models.CharField(max_length=100, null=True, blank=True)
+
 
     class Meta:
         db_table = 'language'
