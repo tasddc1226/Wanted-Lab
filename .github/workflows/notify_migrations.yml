@@ -3,7 +3,7 @@ name: Notify Migrations
 on:
   push:
     branches:
-      - production
+      - main
     paths:
       - '**/migrations/*.py'
 
