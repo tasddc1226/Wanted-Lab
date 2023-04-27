@@ -73,6 +73,7 @@ class CompanySearchView(ListAPIView):
         
         # filter by language
         objs = objs.filter(code__code=language)
+        
         serializer = self.get_serializer(objs, many=True)
         
         return Response(serializer.data, status=status.HTTP_200_OK)
