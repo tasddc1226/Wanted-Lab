@@ -3,7 +3,7 @@ name: Notify Migrations
 on:
   push:
     branches:
-      - main
+      - production
     paths:
       - '**/migrations/*.py'
 
@@ -29,16 +29,25 @@ jobs:
 
     - name: Check for new migrations
       run: |
-        NEW_MIGRATIONS=$(git diff --name-only HEAD~1 HEAD | grep 'migrations')
+        NEW_MIGRATIONS=$(git diff --name-only HEAD~1 HEAD | grep 'migrations' | tr '\n' ',')
         if [ -n "$NEW_MIGRATIONS" ]; then
-          echo "NEW_MIGRATIONS=$NEW_MIGRATIONS" >> $GITHUB_ENV
+          ENCODED_NEW_MIGRATIONS=$(echo "$NEW_MIGRATIONS" | base64)
+          echo "ENCODED_NEW_MIGRATIONS=$ENCODED_NEW_MIGRATIONS" >> $GITHUB_ENV
         fi
 
+    - name: Decode new migrations
+      if: env.ENCODED_NEW_MIGRATIONS != ''
+      run: |
+        DECODED_NEW_MIGRATIONS=$(echo "${{ env.ENCODED_NEW_MIGRATIONS }}" | base64 --decode)
+        echo "DECODED_NEW_MIGRATIONS=$DECODED_NEW_MIGRATIONS" >> $GITHUB_ENV
+
     - name: Send Slack notification
-      if: env.NEW_MIGRATIONS != ''
+      if: env.ENCODED_NEW_MIGRATIONS != ''
       uses: 8398a7/action-slack@v3
       with:
         status: ${{ job.status }}
-        text: "New migrations have been merged: ${{ env.NEW_MIGRATIONS }}"
+        text: "New migrations have been merged: ${{ env.DECODED_NEW_MIGRATIONS }}"
+        # Optional: add a step to decode the base64-encoded string
+        #   run: echo "${{ env.ENCODED_NEW_MIGRATIONS }}" | base64 --decode
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
